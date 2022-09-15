@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -xe
 ## gen_certs_rsa.sh
 
 # Default values
@@ -39,6 +39,8 @@ OPENSSL_CA="$OPENSSL_SUBJ/CN=fake-CA"
 OPENSSL_SERVER="$OPENSSL_SUBJ/CN=fake-server"
 OPENSSL_CLIENT="$OPENSSL_SUBJ/CN=fake-client"
 
+mkdir certs
+
 # Generate new CA certificate ca.pem file.
 openssl genrsa $BLOCK_SIZE > certs/ca-key.pem
 
@@ -52,21 +54,21 @@ openssl req -newkey rsa:$BLOCK_SIZE -nodes \
     -keyout certs/server-key.pem -out certs/server-req.pem
 
 # Use old format for key
-openssl rsa -in server-key.pem -out certs/server-key.pem
+openssl rsa -in certs/server-key.pem -out certs/server-key.pem
 
-openssl x509 -req -in server-req.pem -days $DAYS \
-    -CA ca.pem -CAkey ca-key.pem -set_serial 01 -out certs/server-cert.pem
+openssl x509 -req -in certs/server-req.pem -days $DAYS \
+    -CA certs/ca.pem -CAkey certs/ca-key.pem -set_serial 01 -out certs/server-cert.pem
 
 # # Create the client-side certificates
 openssl req -newkey rsa:$BLOCK_SIZE -nodes \
     -subj "$OPENSSL_CLIENT" \
-    -keyout client-key.pem -out certs/client-req.pem
+    -keyout certs/client-key.pem -out certs/client-req.pem
 
 # Use old format for key
-openssl rsa -in client-key.pem -out certs/client-key.pem
+openssl rsa -in certs/client-key.pem -out certs/client-key.pem
 
-openssl x509 -req -in client-req.pem -days $DAYS \
-    -CA ca.pem -CAkey ca-key.pem -set_serial 01 -out certs/client-cert.pem
+openssl x509 -req -in certs/client-req.pem -days $DAYS \
+    -CA certs/ca.pem -CAkey certs/ca-key.pem -set_serial 01 -out certs/client-cert.pem
 
 # # Verify the certificates are correct
-openssl verify -CAfile ca.pem server-cert.pem certs/client-cert.pem
+openssl verify -CAfile certs/ca.pem certs/server-cert.pem certs/client-cert.pem
