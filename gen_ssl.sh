@@ -72,3 +72,6 @@ openssl x509 -req -in certs/client-req.pem -days $DAYS \
 
 # # Verify the certificates are correct
 openssl verify -CAfile certs/ca.pem certs/server-cert.pem certs/client-cert.pem
+
+# Insecure but required for mysql user to be able to read the certs
+chmod -R +r certs/
